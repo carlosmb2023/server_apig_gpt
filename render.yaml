@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: dan-xbox-api
+    plan: free
+    runtime: python
+    buildCommand: pip install -r requirements.txt && playwright install
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: GOOGLE_DRIVE_TOKEN
+        value: your-google-token-here
+      - key: GITHUB_TOKEN
+        value: your-github-token-here
+      - key: AZURE_DEVOPS_TOKEN
+        value: your-azure-token-here
+      - key: ZAPIER_MCP_ENABLED
+        value: "true"

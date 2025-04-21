@@ -1,0 +1,8 @@
+playwright
+selenium
+fastapi
+uvicorn
+requests
+aiofiles
+python-multipart
+discord.py

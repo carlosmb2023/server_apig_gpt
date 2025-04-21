@@ -1,0 +1,31 @@
+#variaveis
+.env
+
+# Arquivos de ambiente
+.env
+.env.*
+
+# Banco de dados
+*.db
+*.sqlite
+
+# PyCache e configs de IDEs
+__pycache__/
+*.py[cod]
+*.pyo
+.vscode/
+.idea/
+
+# Ambiente virtual Python
+.venv/
+venv/
+
+# Arquivos temporários e logs
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
