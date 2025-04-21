@@ -4,13 +4,15 @@ services:
     plan: free
     runtime: python
     buildCommand: pip install -r requirements.txt && playwright install
-    startCommand: ./start.sh
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GOOGLE_DRIVE_TOKEN
-        value: your-google-token-here
+        value: ""
       - key: GITHUB_TOKEN
-        value: your-github-token-here
+        value: ""
       - key: AZURE_DEVOPS_TOKEN
-        value: your-azure-token-here
+        value: ""
       - key: ZAPIER_MCP_ENABLED
         value: "true"
+      - key: DISCORD_BOT_TOKEN
+        value: ""
