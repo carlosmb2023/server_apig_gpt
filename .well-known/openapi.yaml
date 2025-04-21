@@ -1,0 +1,28 @@
+openapi: 3.0.1
+description: API do DON - Rotas
+info:
+  title: API du DAN
+  version: "1.0"
+paths:
+  /api/get_results:
+    post:
+      summary: Processa o texto e chama respostas de embeddings com Pinecone
+      requestBody:
+        required: true
+        content:
+          application/json
+          schema:
+            type: object
+            properties:
+              text:
+                type: string
+      responses: 
+        '200':
+          description: Resposta sucessoful
+          content:
+            application/json
+              schema:
+                type: object
+                properties:
+                  ids:
+                    type: string
