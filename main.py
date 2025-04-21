@@ -24,8 +24,12 @@ try:
         logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
         start_discord_bot = lambda: None
 except ImportError:
-    start_discord_bot = lambda: None
+    import asyncio
 
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    asyncio.create_task(start_discord_bot())
 # === Configuração ===
 app = FastAPI()
 DB_PATH = "memory.db"
