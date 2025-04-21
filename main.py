@@ -6,30 +6,13 @@ import requests
 import time
 import logging
 import uvicorn
+import asyncio
 
 from playwright.sync_api import sync_playwright
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-# Discord opcional
-try:
-    try:
-        try:
-            from discord_bot import start_discord_bot
-        except ImportError:
-            logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
-            start_discord_bot = lambda: None
-    except ImportError:
-        logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
-        start_discord_bot = lambda: None
-except ImportError:
-    import asyncio
-
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    asyncio.create_task(start_discord_bot())
 # === Configuração ===
 app = FastAPI()
 DB_PATH = "memory.db"
@@ -43,6 +26,19 @@ GOOGLE_API_TOKEN = os.getenv("GOOGLE_DRIVE_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 AZURE_DEVOPS_TOKEN = os.getenv("AZURE_DEVOPS_TOKEN")
 ZAPIER_MCP_ENABLED = os.getenv("ZAPIER_MCP_ENABLED", "true").lower() == "true"
+
+# Discord opcional
+try:
+    from discord_bot import start_discord_bot
+except ImportError:
+    logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
+    async def start_discord_bot():
+        pass
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    asyncio.create_task(start_discord_bot())
 
 # === Banco local de memória ===
 def init_db():
@@ -58,11 +54,6 @@ def init_db():
     """)
     conn.commit()
     conn.close()
-
-@app.on_event("startup")
-def startup_event():
-    init_db()
-    start_discord_bot()
 
 @app.get("/")
 def root():
@@ -164,7 +155,7 @@ def selenium_automation(url: str):
     try:
         options = Options()
         options.add_argument("--headless")
-        service = Service("/usr/bin/chromedriver")  # Atualize se necessário
+        service = Service("/usr/bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=options)
         driver.get(url)
         content = driver.page_source
@@ -217,7 +208,6 @@ def get_discord_spec():
 @app.get("/health")
 def health_check(): return {"status": "ok"}
 
-# === Start server ===
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 7000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
