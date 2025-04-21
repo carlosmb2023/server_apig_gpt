@@ -1,0 +1,12 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "API do DAN",
+  "name_for_model": "api_do_dan",
+  "description_for_human": "Integração da API do DAN com o ChatGPT",
+  "description_for_model": "Permite que o ChatGPT interaja com a API do DAN para obter resultados baseados em embeddings.",
+  "auth": {"type": "none"},
+  "api": {"type": "openapi", "url": "https://server-apig-gpt.onrender.com/.well-nown/openapi.yaml", "is_user_authenticated": false},
+  "logo_url": "https://server-apig-gpt.onrender.com/logo.png",
+  "contact_email": "carlosmb@mail.com",
+  "legal_info_url": "https://server-apig-gpt.onrender.com/legal"
+}
