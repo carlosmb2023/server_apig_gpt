@@ -14,6 +14,6 @@ async def on_ready():
 async def ping(ctx):
     await ctx.send("Pong! DAN-XBOX Bot ativo.")
 
-def start_discord_bot():
+async def start_discord_bot():
     if DISCORD_TOKEN:
-        bot.run(DISCORD_TOKEN)
+        await bot.start(DISCORD_TOKEN)
