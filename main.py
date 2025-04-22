@@ -250,6 +250,33 @@ async def zapier_webhook_trigger(request: Request):
     payload = await request.json()
     logging.info(f"[ZAPIER] Trigger recebido: {payload}")
 
+    # Executar ação com base no payload
+    acao = payload.get("acao")
+
+    if acao == "github.issue":
+        owner = payload.get("owner")
+        repo = payload.get("repo")
+        title = payload.get("title", "Título padrão")
+        body = payload.get("body", "Criado via Zapier")
+
+        headers = {
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json"
+        }
+        issue_payload = {"title": title, "body": body}
+
+        r = requests.post(f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues", headers=headers, json=issue_payload)
+        r.raise_for_status()
+        logging.info(f"[GITHUB] Issue criada com sucesso: {title}")
+
+    elif "webhook" in payload:
+        webhook_url = payload["webhook"]
+        try:
+            requests.post(webhook_url, json=payload, timeout=10)
+            logging.info(f"[WEBHOOK] Disparado com sucesso: {webhook_url}")
+        except Exception as e:
+            logging.error(f"[WEBHOOK] Falha: {e}")
+
     return JSONResponse(
         content=[
             {
