@@ -39,6 +39,7 @@ GOOGLE_API_TOKEN = os.getenv("GOOGLE_DRIVE_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 AZURE_DEVOPS_TOKEN = os.getenv("AZURE_DEVOPS_TOKEN")
 ZAPIER_MCP_ENABLED = os.getenv("ZAPIER_MCP_ENABLED", "true").lower() == "true"
+ZAPIER_SECRET = os.getenv("ZAPIER_SECRET", "zapier123")  # define no Render se quiser 
 
 # === Banco local de memória ===
 def init_db():
@@ -166,10 +167,15 @@ async def selenium_automation(request: Request):
     if not url:
         raise HTTPException(status_code=400, detail="Campo 'url' é obrigatório.")
     try:
+        import chromedriver_autoinstaller
+        chromedriver_autoinstaller.install()
+
         options = Options()
         options.add_argument("--headless")
-        service = Service("/usr/bin/chromedriver")  # Atualize se necessário
-        driver = webdriver.Chrome(service=service, options=options)
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(options=options)
         driver.get(url)
         content = driver.page_source
         driver.quit()
@@ -185,17 +191,55 @@ def zapier_sse():
         yield "event: ping\n"
         yield "data: 🧠 Conexão com Zapier\n\n"
         for i in range(3):
-            yield f"event: msg\ndata: Evento {i+1}\n\n"
+            yield f"event: msg\ndata: Evento {i+1} enviado\n\n"
             time.sleep(1)
         yield "event: fim\ndata: Fim da transmissão\n\n"
-    return StreamingResponse(stream(), media_type="text/event-stream")
+
+    headers = {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Content-Type": "text/event-stream",
+    }
+    return StreamingResponse(stream(), headers=headers)
 
 @app.post("/zapier/trigger")
 def trigger_zapier(data: dict):
     if not ZAPIER_MCP_ENABLED:
         raise HTTPException(status_code=503, detail="Zapier MCP desativado.")
-    r = requests.post("https://actions.zapier.com/mcp/YOUR_ENDPOINT", json=data)
-    return {"status": "enviado", "response": r.text}
+
+    if not data:
+        raise HTTPException(status_code=400, detail="Dados ausentes na requisição.")
+
+    try:
+        r = requests.post("https://actions.zapier.com/mcp/YOUR_ENDPOINT", json=data, timeout=10)
+        r.raise_for_status()
+        return {"status": "enviado", "code": r.status_code, "zapier_response": r.text}
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"Erro ao enviar para Zapier: {e}")
+
+@app.post("/zapier/webhook-trigger")
+async def zapier_webhook_trigger(request: Request):
+    headers = request.headers
+    token = headers.get("X-Zapier-Token")
+
+    if token != ZAPIER_SECRET:
+        raise HTTPException(status_code=403, detail="Token inválido")
+
+    payload = await request.json()
+    logging.info(f"[ZAPIER] Trigger recebido: {payload}")
+
+    # Aqui você pode salvar, enfileirar ou processar o evento
+
+    # Zapier espera UM ARRAY de eventos como resposta
+    return JSONResponse(
+        content=[
+            {
+                "id": str(int(time.time())),
+                "mensagem": "Novo evento do DAN recebido 🔥",
+                "dados": payload
+            }
+        ]
+    )
 
 # === Arquivos plugin ===
 @app.get("/github/github-api.yaml")
