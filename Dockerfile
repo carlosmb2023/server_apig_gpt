@@ -12,22 +12,25 @@ RUN apt-get update && apt-get install -y \
     libgstgl-1.0-0 libgstcodecparsers-1.0-0 libgles2 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Node (para playwright instalar)
+# Node.js (pra Playwright)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# App files
+# Login no GHCR (com secrets setados via ENV)
+# -- usado apenas localmente ou em build CI --
+# ENV CR_PAT=<GITHUB_TOKEN_COM_SCOPE_READ_PACKAGES>
+# RUN echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+
 WORKDIR /app
 COPY . /app
 
-# Python deps
+# Instala Python deps + Playwright
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     playwright install
 
-# Porta da API
 ENV PORT=10000
 EXPOSE $PORT
 
-# Entrypoint: FastAPI + Watchdog
 CMD ["bash", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT & python watchdog.py"]
+
