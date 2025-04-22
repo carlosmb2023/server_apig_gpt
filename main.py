@@ -6,26 +6,64 @@ import requests
 import time
 import logging
 import uvicorn
-import asyncio
 
 from playwright.sync_api import sync_playwright
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
+# Discord opcional
+try:
+    try:
+        try:
+            from discord_bot import start_discord_bot
+        except ImportError:
+            logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
+            start_discord_bot = lambda: None
+    except ImportError:
+        logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
+        start_discord_bot = lambda: None
+except ImportError:
+    start_discord_bot = lambda: None
+
 # === Configuração ===
 app = FastAPI()
+DB_PATH = "memory.db"
+logging.basicConfig(level=logging.INFO)
 
-@app.get("/.well-known/{filename}")
-async def get_well_known_file(filename: str):
-    file_path = os.path.join(".well-known", filename)
-    if os.path.isfile(file_path):
-        return FileResponse(path=file_path, filename=filename)
-    return {"detail": "Not Found"}
+GOOGLE_API_BASE = "https://www.googleapis.com/drive/v3"
+GITHUB_API_BASE = "https://api.github.com"
+AZURE_API_BASE = "https://dev.azure.com"
+
+GOOGLE_API_TOKEN = os.getenv("GOOGLE_DRIVE_TOKEN")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+AZURE_DEVOPS_TOKEN = os.getenv("AZURE_DEVOPS_TOKEN")
+ZAPIER_MCP_ENABLED = os.getenv("ZAPIER_MCP_ENABLED", "true").lower() == "true"
+
+# === Banco local de memória ===
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS memory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prompt TEXT,
+            response TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
+    start_discord_bot()
 
 @app.get("/")
 def root():
-    return {"status": "DAN-XBOX API com todas integracoes ativas"}
+    return {"status": "✅ DAN-XBOX API com todas integrações ativas"}
+
 @app.post("/v1/completions")
 async def completions(request: Request):
     data = await request.json()
@@ -104,7 +142,11 @@ def list_azure_builds(organization: str, project: str):
 
 # === Playwright Automação ===
 @app.post("/automation/playwright")
-def playwright_automation(url: str):
+async def playwright_automation(request: Request):
+    data = await request.json()
+    url = data.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="Campo 'url' é obrigatório.")
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -118,7 +160,11 @@ def playwright_automation(url: str):
 
 # === Selenium Automação ===
 @app.post("/automation/selenium")
-def selenium_automation(url: str):
+async def selenium_automation(request: Request):
+    data = await request.json()
+    url = data.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="Campo 'url' é obrigatório.")
     try:
         options = Options()
         options.add_argument("--headless")
