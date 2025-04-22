@@ -1,11 +1,18 @@
 openapi: 3.1.0
 info:
   title: API do DAN
-  description: API multifuncional com integração a IA, GitHub, Google Drive, Azure DevOps, automação e Zapier.
+  description: API multifuncional com integração a IA, GitHub, Google Drive, Azure DevOps, automação, Zapier e Render.com.
   version: "1.0"
 servers:
   - url: https://server-apig-gpt-1.onrender.com
     description: Servidor principal da API do DAN
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
 paths:
   /:
@@ -15,6 +22,21 @@ paths:
       responses:
         '200':
           description: Status da API
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Verifica se o servidor está saudável.
+      responses:
+        '200':
+          description: Servidor ativo
           content:
             application/json:
               schema:
@@ -353,57 +375,80 @@ paths:
                   content:
                     type: string
 
-  /mcp/sse:
+  /render/services:
     get:
-      operationId: zapierSSE
-      summary: Mock de streaming de eventos via SSE (Zapier).
+      operationId: listarServicosRender
+      summary: Lista todos os serviços disponíveis na conta Render.
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: Transmissão de eventos
-          content:
-            text/event-stream:
-              schema:
-                type: string
-
-  /zapier/trigger:
-    post:
-      operationId: dispararTriggerZapier
-      summary: Dispara um evento de trigger para o Zapier MCP.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                event:
-                  type: string
-                payload:
-                  type: object
-      responses:
-        '200':
-          description: Trigger enviado
+          description: Lista de serviços
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  services:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        serviceDetails:
+                          type: object
+
+  /render/services/{service_id}:
+    get:
+      operationId: detalhesServicoRender
+      summary: Detalhes de um serviço Render específico.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Informações do serviço
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
                   status:
                     type: string
-                  response:
-                    type: string
 
-  /health:
-    get:
-      operationId: healthCheck
-      summary: Verifica se o servidor está saudável.
+  /render/services/{service_id}/deploys:
+    post:
+      operationId: iniciarDeployRender
+      summary: Inicia um novo deploy de um serviço Render.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
-          description: Servidor ativo
+          description: Deploy iniciado
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  id:
+                    type: string
                   status:
                     type: string
