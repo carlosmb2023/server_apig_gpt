@@ -4,7 +4,7 @@ info:
   description: API multifuncional com integração a IA, GitHub, Google Drive, Azure DevOps, automação e Zapier.
   version: "1.0"
 servers:
-  - url: https://server-apig-gpt.onrender.com
+  - url: https://server-apig-gpt-1.onrender.com
     description: Servidor principal da API do DAN
 
 paths:
