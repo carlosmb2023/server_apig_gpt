@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException, Query, Path
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 import os
 import requests
@@ -7,7 +8,7 @@ import time
 import logging
 import uvicorn
 
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -28,6 +29,15 @@ except ImportError:
 
 # === Configuração ===
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 DB_PATH = "memory.db"
 logging.basicConfig(level=logging.INFO)
 
@@ -39,7 +49,9 @@ GOOGLE_API_TOKEN = os.getenv("GOOGLE_DRIVE_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 AZURE_DEVOPS_TOKEN = os.getenv("AZURE_DEVOPS_TOKEN")
 ZAPIER_MCP_ENABLED = os.getenv("ZAPIER_MCP_ENABLED", "true").lower() == "true"
-ZAPIER_SECRET = os.getenv("ZAPIER_SECRET", "zapier123")  # define no Render se quiser 
+ZAPIER_SECRET = os.getenv("ZAPIER_SECRET", "zapier123")
+ZAPIER_ACTION_URL = "https://server-apig-gpt-1.onrender.com/zapier/trigger"
+ZAPIER_TRIGGER_WEBHOOK = "https://server-apig-gpt-1.onrender.com/zapier/webhook-trigger"
 
 # === Banco local de memória ===
 def init_db():
@@ -64,6 +76,16 @@ def startup_event():
 @app.get("/")
 def root():
     return {"status": "✅ DAN-XBOX API com todas integrações ativas"}
+
+@app.get("/.well-known/api-config")
+def api_config():
+    return {
+        "zapier_trigger": ZAPIER_TRIGGER_WEBHOOK,
+        "zapier_action": ZAPIER_ACTION_URL,
+        "github_spec": "/github/github-api.yaml",
+        "drive_spec": "/google-drive/google-drive-api.yaml",
+        "plugin_version": "1.0.0"
+    }
 
 @app.post("/v1/completions")
 async def completions(request: Request):
@@ -149,12 +171,12 @@ async def playwright_automation(request: Request):
     if not url:
         raise HTTPException(status_code=400, detail="Campo 'url' é obrigatório.")
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            page = browser.new_page()
-            page.goto(url)
-            content = page.content()
-            browser.close()
+        async with async_playwright() as p:
+            browser = await p.chromium.launch()
+            page = await browser.new_page()
+            await page.goto(url)
+            content = await page.content()
+            await browser.close()
         return {"status": "ok", "content": content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro Playwright: {e}")
@@ -211,7 +233,7 @@ def trigger_zapier(data: dict):
         raise HTTPException(status_code=400, detail="Dados ausentes na requisição.")
 
     try:
-        r = requests.post("https://actions.zapier.com/mcp/YOUR_ENDPOINT", json=data, timeout=10)
+        r = requests.post(ZAPIER_ACTION_URL, json=data, timeout=10)
         r.raise_for_status()
         return {"status": "enviado", "code": r.status_code, "zapier_response": r.text}
     except requests.exceptions.RequestException as e:
@@ -228,9 +250,6 @@ async def zapier_webhook_trigger(request: Request):
     payload = await request.json()
     logging.info(f"[ZAPIER] Trigger recebido: {payload}")
 
-    # Aqui você pode salvar, enfileirar ou processar o evento
-
-    # Zapier espera UM ARRAY de eventos como resposta
     return JSONResponse(
         content=[
             {
@@ -255,12 +274,10 @@ def azure_yaml(): return FileResponse("azure-devops/azure-devops-api.yaml")
 def azure_json(): return FileResponse("azure-devops/azure-ai-plugin.json")
 
 @app.get("/google-drive/google-drive-api.yaml")
-def get_google_spec():
-    return FileResponse("google-drive/google-drive-api.yaml")
+def get_google_spec(): return FileResponse("google-drive/google-drive-api.yaml")
 
 @app.get("/discord/discord-api.yaml")
-def get_discord_spec():
-    return FileResponse("discord/discord-api.yaml")
+def get_discord_spec(): return FileResponse("discord/discord-api.yaml")
 
 @app.get("/health")
 def health_check(): return {"status": "ok"}
