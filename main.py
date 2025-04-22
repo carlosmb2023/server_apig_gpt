@@ -1,13 +1,19 @@
-from fastapi import FastAPI, Request, HTTPException, Query
+from fastapi import FastAPI, Request, HTTPException, Query, Path
 from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
-import os
 import sqlite3
+import os
 import requests
 import time
 import logging
 import uvicorn
 import asyncio
 
+from playwright.sync_api import sync_playwright
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+
+# === Configuração ===
 app = FastAPI()
 
 @app.get("/.well-known/{filename}")
