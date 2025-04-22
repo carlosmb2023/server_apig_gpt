@@ -385,7 +385,7 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Lista de serviços
+          description: Lista de serviços da Render
           content:
             application/json:
               schema:
@@ -406,7 +406,7 @@ paths:
   /render/services/{service_id}:
     get:
       operationId: detalhesServicoRender
-      summary: Detalhes de um serviço Render específico.
+      summary: Detalha informações de um serviço específico da Render.
       security:
         - bearerAuth: []
       parameters:
@@ -417,7 +417,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Informações do serviço
+          description: Detalhes do serviço
           content:
             application/json:
               schema:
@@ -433,7 +433,7 @@ paths:
   /render/services/{service_id}/deploys:
     post:
       operationId: iniciarDeployRender
-      summary: Inicia um novo deploy de um serviço Render.
+      summary: Inicia um novo deploy para o serviço especificado na Render.
       security:
         - bearerAuth: []
       parameters:
@@ -444,7 +444,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Deploy iniciado
+          description: Deploy iniciado com sucesso
           content:
             application/json:
               schema:
