@@ -9,7 +9,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://server-apig-gpt-1.onrender.com/.well-known/openapi.yaml"
+    "url": "https://server-apig-gpt-1.onrender.com/.well-known/openapi.yaml",
     "is_user_authenticated": false
   },
   "logo_url": "https://server-apig-gpt-1.onrender.com/logo.png",
