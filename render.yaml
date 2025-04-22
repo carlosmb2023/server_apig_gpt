@@ -1,12 +1,13 @@
 services:
   - type: web
     name: dan-xbox-api
-    plan: pro
     env: docker
-    dockerContext: .
-    dockerfilePath: ./Dockerfile
+    plan: pro
     autoDeploy: true
     branch: main
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+
     envVars:
       - key: GOOGLE_DRIVE_TOKEN
         sync: false
@@ -20,9 +21,13 @@ services:
         value: "zapier123"
       - key: DISCORD_BOT_TOKEN
         sync: false
-      - key: GHCR_USERNAME
-        sync: false
-      - key: GHCR_TOKEN
-        sync: false
       - key: PORT
         value: "10000"
+
+      # Credenciais para GitHub Container Registry (GHCR)
+      - key: DOCKER_REGISTRY
+        value: ghcr.io
+      - key: DOCKER_USERNAME
+        sync: false
+      - key: DOCKER_PASSWORD
+        sync: false
