@@ -1,22 +1,30 @@
 services:
   - type: web
-    name: dan-api
+    name: dan-xbox-api
+    plan: pro
     env: docker
-    plan: free
+    dockerContext: .
     dockerfilePath: ./Dockerfile
-    buildCommand: pip install -r requirements.txt && playwright install
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    branch: main
     envVars:
       - key: GOOGLE_DRIVE_TOKEN
-        value: ""
+        sync: false
       - key: GITHUB_TOKEN
-        value: ""
+        sync: false
       - key: AZURE_DEVOPS_TOKEN
-        value: ""
+        sync: false
       - key: ZAPIER_MCP_ENABLED
         value: "true"
       - key: ZAPIER_SECRET
-        value: zapier123
+        value: "zapier123"
       - key: DISCORD_BOT_TOKEN
-        value: ""
-    autoDeploy: true
+        sync: false
+
+hooks:
+  - type: webhook
+    name: DeployWebhookZapier
+    on: deploy.finish
+    url: https://server-apig-gpt-1.onrender.com/zapier/webhook-trigger
+    customHeaders:
+      X-Zapier-Token: zapier123
