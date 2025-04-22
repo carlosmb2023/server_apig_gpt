@@ -20,11 +20,3 @@ services:
         value: "zapier123"
       - key: DISCORD_BOT_TOKEN
         sync: false
-
-hooks:
-  - type: webhook
-    name: DeployWebhookZapier
-    on: deploy.finish
-    url: https://server-apig-gpt-1.onrender.com/zapier/webhook-trigger
-    customHeaders:
-      X-Zapier-Token: zapier123
