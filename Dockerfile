@@ -1,46 +1,63 @@
-# Use uma imagem base com suporte a Playwright
 FROM mcr.microsoft.com/playwright/python:v1.39.0-focal
 
-# Instale dependências adicionais
+# ==== Instala dependências de sistema do WebUI ====
 RUN apt-get update && apt-get install -y \
-    wget curl unzip gnupg libglib2.0-0 libnss3 libatk1.0-0 \
-    libatk-bridge2.0-0 libcups2 libxss1 libxcomposite1 libxrandr2 \
-    libasound2 libxtst6 libxdamage1 libxext6 libxfixes3 libx11-xcb1 \
-    libgtk-3-0 libgbm1 libdrm2 libshm-fence1 libxrender1 libpci3 \
-    libgdk-pixbuf2.0-0 libpangocairo-1.0-0 libharfbuzz-icu0 \
-    fonts-liberation libappindicator3-1 lsb-release libsecret-1-0 \
-    libavif15 libenchant-2-2 libmanette-0.2-0 libgraphene-1.0-0 \
-    libgstgl-1.0-0 libgstcodecparsers-1.0-0 libgles2 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    wget curl unzip gnupg xvfb x11vnc tigervnc-tools xauth dbus \
+    supervisor netcat-traditional net-tools procps git \
+    libgconf-2-4 libnss3 libnspr4 libasound2 libatk1.0-0 libatk-bridge2.0-0 \
+    libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libxcomposite1 libxdamage1 \
+    libxfixes3 libxrandr2 libxss1 libx11-xcb1 libxext6 libxtst6 \
+    libpci3 libxrender1 libshm-fence1 libgdk-pixbuf2.0-0 libpangocairo-1.0-0 \
+    libharfbuzz-icu0 libsecret-1-0 libavif15 libenchant-2-2 libmanette-0.2-0 \
+    libgraphene-1.0-0 libgstgl-1.0-0 libgstcodecparsers-1.0-0 libgles2 \
+    fonts-liberation fonts-dejavu-core fonts-dejavu-extra fontconfig \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instale Node.js (necessário para o frontend)
+# ==== Instala Node.js (para o WebUI) ====
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# Defina o diretório de trabalho
+# ==== Instala noVNC ====
+RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
+    && git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify \
+    && ln -s /opt/novnc/vnc.html /opt/novnc/index.html
+
+# ==== Setup App ====
 WORKDIR /app
 
-# Copie os arquivos do backend
+# Copia tudo
 COPY . /app
 
-# Instale as dependências do Python
+# ==== Instala dependências Python ====
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    playwright install
+    playwright install --with-deps chromium
 
-# Configure o frontend
+# ==== Build do frontend ====
 WORKDIR /app/web-ui
 RUN npm install && npm run build
 
-# Volte para o diretório do backend
+# ==== Configuração supervisor ====
 WORKDIR /app
+RUN mkdir -p /var/log/supervisor
+COPY web-ui/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Defina a porta da API
+# ==== Variáveis de ambiente ====
+ENV PYTHONUNBUFFERED=1
+ENV BROWSER_USE_LOGGING_LEVEL=info
+ENV CHROME_PATH=/ms-playwright/chromium-*/chrome-linux/chrome
+ENV ANONYMIZED_TELEMETRY=false
+ENV DISPLAY=:99
+ENV RESOLUTION=1920x1080x24
+ENV VNC_PASSWORD=vncpassword
+ENV CHROME_PERSISTENT_SESSION=true
+ENV RESOLUTION_WIDTH=1920
+ENV RESOLUTION_HEIGHT=1080
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PORT=10000
-EXPOSE $PORT
 
-# Comando de inicialização
-CMD ["bash", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT & python watchdog.py"]
+# ==== Portas ====
+EXPOSE 10000 7788 6080 5901
 
-
-
+# ==== Start ====
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
