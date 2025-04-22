@@ -1,0 +1,32 @@
+name: 🔁 API DAN CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout repo
+      uses: actions/checkout@v3
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        playwright install --with-deps
+
+    - name: 🚦 Run smoke tests
+      run: |
+        python -c "import requests; assert requests.get('http://localhost:7000/health').json()['status'] == 'ok'"
+      env:
+        PORT: 7000
