@@ -91,6 +91,18 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        mimeType:
+                          type: string
 
   /drive/file/{file_id}:
     get:
@@ -109,6 +121,13 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  mimeType:
+                    type: string
 
   /drive/file/{file_id}/download:
     get:
@@ -165,6 +184,13 @@ paths:
                 type: array
                 items:
                   type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    full_name:
+                      type: string
 
   /github/repos/{owner}/{repo}/issues:
     post:
@@ -199,6 +225,13 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  id:
+                    type: integer
+                  url:
+                    type: string
+                  title:
+                    type: string
 
   /azure/repos/{organization}/{project}:
     get:
@@ -222,6 +255,16 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
 
   /azure/builds/{organization}/{project}:
     get:
@@ -245,6 +288,18 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        status:
+                          type: string
+                        result:
+                          type: string
 
   /automation/playwright:
     post:
@@ -320,6 +375,11 @@ paths:
           application/json:
             schema:
               type: object
+              properties:
+                event:
+                  type: string
+                payload:
+                  type: object
       responses:
         '200':
           description: Trigger enviado
