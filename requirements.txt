@@ -7,3 +7,4 @@ aiofiles
 python-multipart
 discord.py
 chromedriver-autoinstaller
+watchdog

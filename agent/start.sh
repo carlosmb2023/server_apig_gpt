@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+#!/bin/bash
 # Start Watchdog Automation Agent
 
 echo "Startando agent watchdog..."
 
-python3 /home/user/projects/server_apig_gpt/agent/watchdog.py
+python3 "$(dirname "$0")/watchdoger.py"
