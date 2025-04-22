@@ -20,3 +20,5 @@ services:
         value: "zapier123"
       - key: DISCORD_BOT_TOKEN
         sync: false
+      - key: PORT
+        value: "10000"
