@@ -3,6 +3,7 @@ info:
   title: API do DAN
   description: API multifuncional com integração a IA, GitHub, Google Drive, Azure DevOps, automação, Zapier e Render.com.
   version: "1.0"
+
 servers:
   - url: https://server-apig-gpt-1.onrender.com
     description: Servidor principal da API do DAN
@@ -13,7 +14,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-   schemas: {}
+  schemas: {}
 
 paths:
   /:
