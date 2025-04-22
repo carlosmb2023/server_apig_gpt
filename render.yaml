@@ -1,8 +1,9 @@
 services:
   - type: web
-    name: dan-xbox-api
+    name: dan-api
+    env: docker
     plan: free
-    runtime: python
+    dockerfilePath: ./Dockerfile
     buildCommand: pip install -r requirements.txt && playwright install
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -14,5 +15,8 @@ services:
         value: ""
       - key: ZAPIER_MCP_ENABLED
         value: "true"
+      - key: ZAPIER_SECRET
+        value: zapier123
       - key: DISCORD_BOT_TOKEN
         value: ""
+    autoDeploy: true
