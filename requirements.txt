@@ -8,3 +8,10 @@ python-multipart
 discord.py
 chromedriver-autoinstaller
 watchdog
+
+pyperclip==1.9.0
+gradio==4.44.1
+json-repair
+langchain-mistralai==0.1.13
+
+MainContentExtractor==0.0.4
