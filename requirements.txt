@@ -9,7 +9,6 @@ discord.py
 chromedriver-autoinstaller
 watchdog
 browser-use
-"browser-use[memory]"
 pyperclip==1.9.0
 gradio==4.44.1
 json-repair
