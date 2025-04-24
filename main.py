@@ -7,6 +7,7 @@ import requests
 import time
 import logging
 import uvicorn
+import json
 
 from playwright.async_api import async_playwright
 from selenium import webdriver
@@ -86,6 +87,40 @@ def api_config():
         "drive_spec": "/google-drive/google-drive-api.yaml",
         "plugin_version": "1.0.0"
     }
+    CHATLOG_PATH = "/mnt/data/chatlog.jsonl"
+
+@app.post("/chatlog/append")
+async def save_chatlog(request: Request):
+    data = await request.json()
+    if not data.get("role") or not data.get("content"):
+        raise HTTPException(status_code=400, detail="Campos 'role' e 'content' são obrigatórios.")
+
+    try:
+        with open(CHATLOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(data, ensure_ascii=False) + "\n")
+        return {"status": "salvo", "registro": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao gravar chatlog: {e}")
+
+
+@app.get("/chatlog/view")
+def view_chatlog():
+    try:
+        with open(CHATLOG_PATH, "r", encoding="utf-8") as f:
+            linhas = f.readlines()
+        return {"linhas": [json.loads(l) for l in linhas]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao ler chatlog: {e}")
+
+
+@app.get("/files")
+def list_disk_files():
+    base_path = "/mnt/data"
+    try:
+        arquivos = os.listdir(base_path)
+        return {"arquivos": arquivos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao acessar disco: {e}"}
 
 @app.post("/v1/completions")
 async def completions(request: Request):
