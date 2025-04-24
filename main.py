@@ -131,6 +131,15 @@ def delete_file(file_id: str):
     r = requests.delete(f"{GOOGLE_API_BASE}/files/{file_id}", headers=headers)
     return {"status": "Arquivo deletado", "code": r.status_code}
 
+@app.get("/files")
+def list_disk_files():
+    base_path = "/mnt/data"
+    try:
+        arquivos = os.listdir(base_path)
+        return {"arquivos": arquivos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao acessar disco: {e}")
+
 # === GitHub ===
 @app.get("/github/repos")
 def list_github_repos():
