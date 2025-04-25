@@ -17,9 +17,6 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# ==== Criação do diretório persistente para browsers ====
-RUN mkdir -p /mnt/data/ms-playwright
-
 # ==== noVNC ====
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
     git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify && \
@@ -37,8 +34,7 @@ RUN apt-get update && \
 
 # ==== Instala dependências Python ====
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    PLAYWRIGHT_BROWSERS_PATH=/mnt/data/ms-playwright playwright install chromium
+    pip install -r requirements.txt
 
 # ==== Config supervisor ====
 RUN mkdir -p /var/log/supervisor
@@ -47,8 +43,6 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # ==== Variáveis de ambiente ====
 ENV PYTHONUNBUFFERED=1 \
     BROWSER_USE_LOGGING_LEVEL=info \
-    CHROME_PATH=/mnt/data/ms-playwright/chromium-*/chrome-linux/chrome \
-    ANONYMIZED_TELEMETRY=false \
     DISPLAY=:99 \
     RESOLUTION=1920x1080x24 \
     VNC_PASSWORD=vncpassword \
@@ -56,6 +50,7 @@ ENV PYTHONUNBUFFERED=1 \
     RESOLUTION_WIDTH=1920 \
     RESOLUTION_HEIGHT=1080 \
     PLAYWRIGHT_BROWSERS_PATH=/mnt/data/ms-playwright \
+    CHROME_PATH=/mnt/data/ms-playwright/chromium-*/chrome-linux/chrome \
     PORT=10000
 
 # ==== Portas expostas ====
