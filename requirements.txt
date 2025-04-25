@@ -8,11 +8,12 @@ python-multipart==0.0.20
 discord.py==2.5.2
 chromedriver-autoinstaller==0.6.4
 watchdog==6.0.0
-browser-use==0.1.41
+browser-use==0.1.38
 pyperclip==1.9.0
 gradio==4.44.1
 json-repair==0.42.0
 langchain-mistralai==0.1.13
+langchain-core==0.2.49
 MainContentExtractor==0.0.4
 transformers>=4.39.0
 torch>=2.2.0
