@@ -2,8 +2,8 @@
 
 echo "🚀 Iniciando DAN-XBOX Server no Render..."
 
-# Garante que o diretório dos browsers do Playwright exista no disco persistente
+# Corrige erro ENOENT criando diretório no SSD persistente
 mkdir -p /mnt/data/ms-playwright
 
-# Inicializa o servidor
+# Inicializa o servidor FastAPI
 uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
