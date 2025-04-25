@@ -10,8 +10,8 @@ chromedriver-autoinstaller==0.6.4
 watchdog==6.0.0
 
 # Compatibilidade entre langchain-core e extensões
-browser-use==0.1.38
-langchain-mistralai==0.1.13
+browser-use
+langchain-mistralai
 
 
 pyperclip==1.9.0
