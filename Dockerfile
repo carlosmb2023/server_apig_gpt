@@ -1,3 +1,4 @@
+
 FROM mcr.microsoft.com/playwright/python:v1.39.0-focal
 
 # ==== Dependências de sistema ====
