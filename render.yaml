@@ -32,6 +32,30 @@ services:
       - key: DOCKER_PASSWORD
         sync: false
 
-      # ✅ Configuração de Playwright no Render
+      # ✅ Playwright cache para evitar redownload
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /opt/render/.cache/ms-playwright
+
+      # 🧠 Token HuggingFace para IA local
+      - key: HUGGINGFACE_TOKEN
+        sync: false
+      - key: LLM_MODEL_NAME
+        value: mistralai/Mistral-7B-Instruct-v0.1
+
+      # ⚙️ Config extras (Browser-Use / VNC / Debugging)
+      - key: DISPLAY
+        value: ":99"
+      - key: VNC_PASSWORD
+        value: "vncpassword"
+      - key: CHROME_PERSISTENT_SESSION
+        value: "true"
+      - key: BROWSER_USE_LOGGING_LEVEL
+        value: "info"
+      - key: ANONYMIZED_TELEMETRY
+        value: "false"
+      - key: RESOLUTION
+        value: "1920x1080x24"
+      - key: RESOLUTION_WIDTH
+        value: "1920"
+      - key: RESOLUTION_HEIGHT
+        value: "1080"
