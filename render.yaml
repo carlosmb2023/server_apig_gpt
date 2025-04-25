@@ -9,7 +9,6 @@ services:
     dockerfilePath: ./Dockerfile
 
     envVars:
-      # 🔐 Tokens principais
       - key: GOOGLE_DRIVE_TOKEN
         sync: false
       - key: GITHUB_TOKEN
@@ -25,19 +24,16 @@ services:
       - key: PORT
         value: "10000"
 
-      # 🧠 HuggingFace LLM
       - key: HUGGINGFACE_TOKEN
         sync: false
       - key: LLM_MODEL_NAME
         value: mistralai/Mistral-7B-Instruct-v0.1
 
-      # 🔧 OpenAI + Render internal
       - key: OPENAI_KEY
         sync: false
       - key: RENDER_API_TOKEN
         sync: false
 
-      # 📦 GHCR Registry (Docker)
       - key: DOCKER_REGISTRY
         value: ghcr.io
       - key: DOCKER_USERNAME
@@ -49,11 +45,9 @@ services:
       - key: GHCR_TOKEN
         sync: false
 
-      # ✅ Playwright (correto agora)
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /mnt/data/ms-playwright
 
-      # 🧪 Debug, VNC e Navegação
       - key: DISPLAY
         value: ":99"
       - key: VNC_PASSWORD
@@ -70,8 +64,3 @@ services:
         value: "1920"
       - key: RESOLUTION_HEIGHT
         value: "1080"
-
-    disk:
-      name: dan-storage
-      mountPath: /mnt/data
-      sizeGB: 50
