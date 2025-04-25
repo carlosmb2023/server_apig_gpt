@@ -1,4 +1,3 @@
-
 FROM mcr.microsoft.com/playwright/python:v1.39.0-focal
 
 # ==== Dependências de sistema ====
@@ -14,9 +13,12 @@ RUN apt-get update && apt-get install -y \
     fonts-dejavu-extra fontconfig && \
     rm -rf /var/lib/apt/lists/*
 
-# ==== Node.js (caso precise rodar algum script JS) ====
+# ==== Node.js ====
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
+
+# ==== Criação do diretório necessário ====
+RUN mkdir -p /ms-playwright
 
 # ==== noVNC ====
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
@@ -27,7 +29,7 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
 WORKDIR /app
 COPY . /app
 
-# ==== Instala Rust (necessário para alguns pacotes Python) ====
+# ==== Instala Rust ====
 RUN apt-get update && \
     apt-get install -y curl build-essential && \
     curl https://sh.rustup.rs -sSf | sh -s -- -y && \
@@ -36,7 +38,7 @@ RUN apt-get update && \
 # ==== Instala dependências Python ====
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    playwright install --with-deps chromium
+    playwright install chromium
 
 # ==== Config supervisor ====
 RUN mkdir -p /var/log/supervisor
