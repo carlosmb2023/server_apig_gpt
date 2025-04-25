@@ -1,6 +1,7 @@
+# ==== BASE: Playwright + Python ==== 
 FROM mcr.microsoft.com/playwright/python:v1.39.0-focal
 
-# ==== Dependências de sistema ====
+# ==== Dependências do Sistema Operacional ==== 
 RUN apt-get update && apt-get install -y \
     wget curl unzip gnupg xvfb x11vnc x11-utils xauth dbus \
     supervisor netcat-traditional net-tools procps git \
@@ -13,34 +14,33 @@ RUN apt-get update && apt-get install -y \
     fonts-dejavu-extra fontconfig && \
     rm -rf /var/lib/apt/lists/*
 
-# ==== Node.js ====
+# ==== Instala Node.js 18 LTS ==== 
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# ==== noVNC ====
+# ==== Instala noVNC ==== 
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
     git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify && \
     ln -s /opt/novnc/vnc.html /opt/novnc/index.html
 
-# ==== Diretório da aplicação ====
+# ==== Diretório principal da aplicação ==== 
 WORKDIR /app
 COPY . /app
-
-# ==== Instala Rust ====
+# ==== Instala Rust (necessário para compilar algumas libs como tokenizers) ==== 
 RUN apt-get update && \
     apt-get install -y curl build-essential && \
     curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     . "$HOME/.cargo/env"
 
-# ==== Instala dependências Python ====
+# ==== Instala as dependências Python (incluindo LLMs, Agents, Browser Automation, etc) ==== 
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# ==== Config supervisor ====
+# ==== Configura Supervisor para gerenciar múltiplos serviços ==== 
 RUN mkdir -p /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# ==== Variáveis de ambiente ====
+# ==== Variáveis de Ambiente Globais ==== 
 ENV PYTHONUNBUFFERED=1 \
     BROWSER_USE_LOGGING_LEVEL=info \
     DISPLAY=:99 \
@@ -52,9 +52,8 @@ ENV PYTHONUNBUFFERED=1 \
     PLAYWRIGHT_BROWSERS_PATH=/mnt/data/ms-playwright \
     CHROME_PATH=/mnt/data/ms-playwright/chromium-*/chrome-linux/chrome \
     PORT=10000
-
-# ==== Portas expostas ====
+# ==== Portas expostas ==== 
 EXPOSE 10000 7788 6080 5901
 
-# ==== Start ====
+# ==== Comando de inicialização (executa múltiplos serviços) ==== 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
