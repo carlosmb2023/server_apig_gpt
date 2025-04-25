@@ -45,9 +45,11 @@ services:
       - key: GHCR_TOKEN
         sync: false
 
+      # 🧠 Caminho correto no SSD do Render
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /mnt/data/ms-playwright
 
+      # ⚙️ Debug e Navegação
       - key: DISPLAY
         value: ":99"
       - key: VNC_PASSWORD
