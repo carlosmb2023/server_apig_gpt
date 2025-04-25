@@ -16,19 +16,12 @@ from selenium.webdriver.chrome.service import Service
 
 # Discord opcional
 try:
-    try:
-        try:
-            from discord_bot import start_discord_bot
-        except ImportError:
-            logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
-            start_discord_bot = lambda: None
-    except ImportError:
-        logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
-        start_discord_bot = lambda: None
+    from discord_bot import start_discord_bot
 except ImportError:
+    logging.warning("discord_bot module not found. Discord bot functionality will be disabled.")
     start_discord_bot = lambda: None
 
-# === Configuração ===
+# === CONFIG GLOBAL ===
 app = FastAPI()
 
 app.add_middleware(
@@ -39,7 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "memory.db"
+DB_PATH = "/mnt/data/memory.db"
+CHATLOG_PATH = "/mnt/data/chatlog.jsonl"
+
 logging.basicConfig(level=logging.INFO)
 
 GOOGLE_API_BASE = "https://www.googleapis.com/drive/v3"
@@ -54,7 +49,7 @@ ZAPIER_SECRET = os.getenv("ZAPIER_SECRET", "zapier123")
 ZAPIER_ACTION_URL = "https://server-apig-gpt-1.onrender.com/zapier/trigger"
 ZAPIER_TRIGGER_WEBHOOK = "https://server-apig-gpt-1.onrender.com/zapier/webhook-trigger"
 
-# === Banco local de memória ===
+# === DATABASE INIT ===
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -87,21 +82,19 @@ def api_config():
         "drive_spec": "/google-drive/google-drive-api.yaml",
         "plugin_version": "1.0.0"
     }
-    CHATLOG_PATH = "/mnt/data/chatlog.jsonl"
 
+# === CHATLOG ===
 @app.post("/chatlog/append")
 async def save_chatlog(request: Request):
     data = await request.json()
     if not data.get("role") or not data.get("content"):
         raise HTTPException(status_code=400, detail="Campos 'role' e 'content' são obrigatórios.")
-
     try:
         with open(CHATLOG_PATH, "a", encoding="utf-8") as f:
             f.write(json.dumps(data, ensure_ascii=False) + "\n")
         return {"status": "salvo", "registro": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao gravar chatlog: {e}")
-
 
 @app.get("/chatlog/view")
 def view_chatlog():
@@ -112,7 +105,7 @@ def view_chatlog():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler chatlog: {e}")
 
-
+# === FILES /mnt/data ===
 @app.get("/files")
 def list_disk_files():
     base_path = "/mnt/data"
@@ -120,8 +113,9 @@ def list_disk_files():
         arquivos = os.listdir(base_path)
         return {"arquivos": arquivos}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao acessar disco: {e}"}
+        raise HTTPException(status_code=500, detail=f"Erro ao acessar disco: {e}")
 
+# === MEMORY ===
 @app.post("/v1/completions")
 async def completions(request: Request):
     data = await request.json()
@@ -140,7 +134,7 @@ def export_memory():
         rows = conn.execute("SELECT * FROM memory ORDER BY id DESC").fetchall()
     return {"logs": [{"id": r[0], "prompt": r[1], "response": r[2], "timestamp": r[3]} for r in rows]}
 
-# === Google Drive ===
+# === GOOGLE DRIVE ===
 @app.get("/drive/list")
 def list_drive_files(page_size: int = 10):
     headers = {"Authorization": f"Bearer {GOOGLE_API_TOKEN}"}
@@ -166,16 +160,7 @@ def delete_file(file_id: str):
     r = requests.delete(f"{GOOGLE_API_BASE}/files/{file_id}", headers=headers)
     return {"status": "Arquivo deletado", "code": r.status_code}
 
-@app.get("/files")
-def list_disk_files():
-    base_path = "/mnt/data"
-    try:
-        arquivos = os.listdir(base_path)
-        return {"arquivos": arquivos}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao acessar disco: {e}")
-
-# === GitHub ===
+# === GITHUB ===
 @app.get("/github/repos")
 def list_github_repos():
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
@@ -192,7 +177,7 @@ def create_issue(owner: str, repo: str, title: str = "Título padrão", body: st
     r = requests.post(f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues", headers=headers, json=payload)
     return r.json()
 
-# === Azure DevOps ===
+# === AZURE DEVOPS ===
 @app.get("/azure/repos/{organization}/{project}")
 def list_azure_repos(organization: str, project: str):
     headers = {"Authorization": f"Basic {AZURE_DEVOPS_TOKEN}"}
@@ -206,8 +191,7 @@ def list_azure_builds(organization: str, project: str):
     url = f"{AZURE_API_BASE}/{organization}/{project}/_apis/build/builds?api-version=7.0"
     r = requests.get(url, headers=headers)
     return r.json()
-
-# === Automação Playwright ===
+# === PLAYWRIGHT AUTOMATION ===
 @app.post("/automation/playwright")
 async def playwright_automation(request: Request):
     data = await request.json()
@@ -225,7 +209,7 @@ async def playwright_automation(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro Playwright: {e}")
 
-# === Automação Selenium ===
+# === SELENIUM AUTOMATION ===
 @app.post("/automation/selenium")
 async def selenium_automation(request: Request):
     data = await request.json()
@@ -249,7 +233,7 @@ async def selenium_automation(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro Selenium: {e}")
 
-# === Zapier Mock SSE + Trigger ===
+# === ZAPIER STREAM MOCK (MCP SSE) ===
 @app.get("/mcp/sse")
 def zapier_sse():
     def stream():
@@ -260,7 +244,6 @@ def zapier_sse():
             yield f"event: msg\ndata: Evento {i+1} enviado\n\n"
             time.sleep(1)
         yield "event: fim\ndata: Fim da transmissão\n\n"
-
     headers = {
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
@@ -272,10 +255,8 @@ def zapier_sse():
 def trigger_zapier(data: dict):
     if not ZAPIER_MCP_ENABLED:
         raise HTTPException(status_code=503, detail="Zapier MCP desativado.")
-
     if not data:
         raise HTTPException(status_code=400, detail="Dados ausentes na requisição.")
-
     try:
         r = requests.post(ZAPIER_ACTION_URL, json=data, timeout=10)
         r.raise_for_status()
@@ -287,14 +268,11 @@ def trigger_zapier(data: dict):
 async def zapier_webhook_trigger(request: Request):
     headers = request.headers
     token = headers.get("X-Zapier-Token")
-
     if token != ZAPIER_SECRET:
         raise HTTPException(status_code=403, detail="Token inválido")
 
     payload = await request.json()
     logging.info(f"[ZAPIER] Trigger recebido: {payload}")
-
-    # Executar ação com base no payload
     acao = payload.get("acao")
 
     if acao == "github.issue":
@@ -302,13 +280,11 @@ async def zapier_webhook_trigger(request: Request):
         repo = payload.get("repo")
         title = payload.get("title", "Título padrão")
         body = payload.get("body", "Criado via Zapier")
-
         headers = {
             "Authorization": f"Bearer {GITHUB_TOKEN}",
             "Accept": "application/vnd.github+json"
         }
         issue_payload = {"title": title, "body": body}
-
         r = requests.post(f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues", headers=headers, json=issue_payload)
         r.raise_for_status()
         logging.info(f"[GITHUB] Issue criada com sucesso: {title}")
@@ -321,17 +297,13 @@ async def zapier_webhook_trigger(request: Request):
         except Exception as e:
             logging.error(f"[WEBHOOK] Falha: {e}")
 
-    return JSONResponse(
-        content=[
-            {
-                "id": str(int(time.time())),
-                "mensagem": "Novo evento do DAN recebido 🔥",
-                "dados": payload
-            }
-        ]
-    )
+    return JSONResponse(content=[{
+        "id": str(int(time.time())),
+        "mensagem": "Novo evento do DAN recebido 🔥",
+        "dados": payload
+    }])
 
-# === Arquivos plugin ===
+# === PLUGIN SPECS (YAML + JSON) ===
 @app.get("/github/github-api.yaml")
 def github_yaml(): return FileResponse("github/github-api.yaml")
 
@@ -350,10 +322,25 @@ def get_google_spec(): return FileResponse("google-drive/google-drive-api.yaml")
 @app.get("/discord/discord-api.yaml")
 def get_discord_spec(): return FileResponse("discord/discord-api.yaml")
 
-@app.get("/health")
-def health_check(): return {"status": "ok"}
+# === DOCKER: SAVE CONTAINER STATE TO SSD ===
+@app.post("/docker/save")
+def save_docker_container(data: dict):
+    filename = data.get("filename", "container_snapshot.json")
+    content = json.dumps(data.get("content", {}), indent=2)
+    try:
+        path = f"/mnt/data/{filename}"
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return {"status": "docker container salvo", "path": path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar container: {e}")
 
-# === Start server ===
+# === HEALTH ===
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+# === RUNNER ===
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 7000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
