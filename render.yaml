@@ -24,10 +24,14 @@ services:
       - key: PORT
         value: "10000"
 
-      # Credenciais para GitHub Container Registry (GHCR)
+      # 🔐 Docker Registry (opcional, usado para GHCR)
       - key: DOCKER_REGISTRY
         value: ghcr.io
       - key: DOCKER_USERNAME
         sync: false
       - key: DOCKER_PASSWORD
         sync: false
+
+      # ✅ Configuração de Playwright no Render
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/.cache/ms-playwright
