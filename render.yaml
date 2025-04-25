@@ -9,6 +9,7 @@ services:
     dockerfilePath: ./Dockerfile
 
     envVars:
+      # 🔐 Tokens principais
       - key: GOOGLE_DRIVE_TOKEN
         sync: false
       - key: GITHUB_TOKEN
@@ -24,16 +25,19 @@ services:
       - key: PORT
         value: "10000"
 
+      # 🧠 HuggingFace LLM
       - key: HUGGINGFACE_TOKEN
         sync: false
       - key: LLM_MODEL_NAME
         value: mistralai/Mistral-7B-Instruct-v0.1
 
+      # 🔧 OpenAI + Render internal
       - key: OPENAI_KEY
         sync: false
       - key: RENDER_API_TOKEN
         sync: false
 
+      # 📦 GHCR Registry (Docker)
       - key: DOCKER_REGISTRY
         value: ghcr.io
       - key: DOCKER_USERNAME
@@ -45,11 +49,13 @@ services:
       - key: GHCR_TOKEN
         sync: false
 
-      # 🧠 Caminho correto no SSD do Render
+      # ✅ Playwright Cache (Render SSD)
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /mnt/data/ms-playwright
+      - key: CHROME_PATH
+        value: /mnt/data/ms-playwright/chromium-*/chrome-linux/chrome
 
-      # ⚙️ Debug e Navegação
+      # 🧪 Debug, VNC e Navegação
       - key: DISPLAY
         value: ":99"
       - key: VNC_PASSWORD
