@@ -9,40 +9,51 @@ services:
     dockerfilePath: ./Dockerfile
 
     envVars:
+      # 🔐 Tokens principais
       - key: GOOGLE_DRIVE_TOKEN
         sync: false
       - key: GITHUB_TOKEN
         sync: false
       - key: AZURE_DEVOPS_TOKEN
         sync: false
+      - key: DISCORD_BOT_TOKEN
+        sync: false
       - key: ZAPIER_MCP_ENABLED
         value: "true"
       - key: ZAPIER_SECRET
         value: "zapier123"
-      - key: DISCORD_BOT_TOKEN
-        sync: false
       - key: PORT
         value: "10000"
 
-      # 🔐 Docker Registry (opcional, usado para GHCR)
+      # 🧠 HuggingFace LLM
+      - key: HUGGINGFACE_TOKEN
+        sync: false
+      - key: LLM_MODEL_NAME
+        value: mistralai/Mistral-7B-Instruct-v0.1
+
+      # 🔧 OpenAI + Render internal
+      - key: OPENAI_KEY
+        sync: false
+      - key: RENDER_API_TOKEN
+        sync: false
+
+      # 📦 GHCR Registry (Docker)
       - key: DOCKER_REGISTRY
         value: ghcr.io
       - key: DOCKER_USERNAME
         sync: false
       - key: DOCKER_PASSWORD
         sync: false
+      - key: GHCR_USERNAME
+        sync: false
+      - key: GHCR_TOKEN
+        sync: false
 
-      # ✅ Playwright cache para evitar redownload
+      # ✅ Playwright Cache (Render path)
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /opt/render/.cache/ms-playwright
 
-      # 🧠 Token HuggingFace para IA local
-      - key: HUGGINGFACE_TOKEN
-        sync: false
-      - key: LLM_MODEL_NAME
-        value: mistralai/Mistral-7B-Instruct-v0.1
-
-      # ⚙️ Config extras (Browser-Use / VNC / Debugging)
+      # 🧪 Debug, VNC e Navegação
       - key: DISPLAY
         value: ":99"
       - key: VNC_PASSWORD
