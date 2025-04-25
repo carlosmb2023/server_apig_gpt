@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# ==== Criação do diretório necessário para browsers ====
+# ==== Criação do diretório persistente dos browsers ====
 RUN mkdir -p /mnt/data/ms-playwright
 
 # ==== noVNC ====
@@ -38,7 +38,7 @@ RUN apt-get update && \
 # ==== Instala dependências Python ====
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    playwright install chromium
+    PLAYWRIGHT_BROWSERS_PATH=/mnt/data/ms-playwright playwright install chromium
 
 # ==== Config supervisor ====
 RUN mkdir -p /var/log/supervisor
@@ -58,8 +58,6 @@ ENV PYTHONUNBUFFERED=1 \
     PLAYWRIGHT_BROWSERS_PATH=/mnt/data/ms-playwright \
     PORT=10000
 
-# ==== Portas expostas ====
 EXPOSE 10000 7788 6080 5901
 
-# ==== Start ====
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
