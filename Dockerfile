@@ -10,15 +10,15 @@ RUN apt-get update && apt-get install -y \
     libpci3 libxrender1 libgdk-pixbuf2.0-0 libpangocairo-1.0-0 \
     libharfbuzz-icu0 libsecret-1-0 libenchant-2-2 libmanette-0.2-0 \
     libgraphene-1.0-0 libgles2 fonts-liberation fonts-dejavu-core \
-    fonts-dejavu-extra fontconfig && \
+    fonts-dejavu-extra fontconfig build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 # ==== Node.js ====
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# ==== Criação do diretório necessário ====
-RUN mkdir -p /ms-playwright
+# ==== Criação do diretório necessário para Playwright (corrigido) ====
+RUN mkdir -p /app/ms-playwright
 
 # ==== noVNC ====
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc && \
@@ -30,24 +30,22 @@ WORKDIR /app
 COPY . /app
 
 # ==== Instala Rust ====
-RUN apt-get update && \
-    apt-get install -y curl build-essential && \
-    curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     . "$HOME/.cargo/env"
 
-# ==== Instala dependências Python ====
+# ==== Instala dependências Python + Chromium ====
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     playwright install chromium
 
-# ==== Config supervisor ====
+# ==== Configuração do Supervisor ====
 RUN mkdir -p /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # ==== Variáveis de ambiente ====
 ENV PYTHONUNBUFFERED=1 \
     BROWSER_USE_LOGGING_LEVEL=info \
-    CHROME_PATH=/ms-playwright/chromium-*/chrome-linux/chrome \
+    CHROME_PATH=/app/ms-playwright/chromium-*/chrome-linux/chrome \
     ANONYMIZED_TELEMETRY=false \
     DISPLAY=:99 \
     RESOLUTION=1920x1080x24 \
@@ -55,7 +53,7 @@ ENV PYTHONUNBUFFERED=1 \
     CHROME_PERSISTENT_SESSION=true \
     RESOLUTION_WIDTH=1920 \
     RESOLUTION_HEIGHT=1080 \
-    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    PLAYWRIGHT_BROWSERS_PATH=/app/ms-playwright \
     PORT=10000
 
 # ==== Portas expostas ====
