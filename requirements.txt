@@ -10,17 +10,15 @@ chromedriver-autoinstaller==0.6.4
 watchdog==6.0.0
 
 # Compatibilidade entre langchain-core e extensões
-browser-use
-langchain-mistralai
-
+browser-use==0.1.41
+langchain-mistralai==0.2.10
 
 pyperclip==1.9.0
 gradio==4.44.1
 json-repair==0.42.0
 MainContentExtractor==0.0.4
 
-transformers>=4.39.0
-torch>=2.2.0
-accelerate>=0.27.0
-huggingface-hub>=0.22.2
-
+transformers==4.51.3
+torch==2.7.0
+accelerate==1.6.0
+huggingface-hub==0.30.2
