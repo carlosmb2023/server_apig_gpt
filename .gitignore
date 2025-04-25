@@ -1,31 +1,50 @@
-#variaveis
-.env
-
-# Arquivos de ambiente
+# Variáveis de ambiente
 .env
 .env.*
 
 # Banco de dados
 *.db
 *.sqlite
+memory.db
+/mnt/data/*.db
 
-# PyCache e configs de IDEs
+# Cache Python e artefatos compilados
 __pycache__/
 *.py[cod]
 *.pyo
+
+# Configurações de IDEs
 .vscode/
 .idea/
 
-# Ambiente virtual Python
+# Ambientes virtuais
 .venv/
 venv/
 
-# Arquivos temporários e logs
+# Logs e temporários
 *.log
 *.tmp
 *.bak
 *.swp
+nohup.out
 
 # Arquivos do sistema
 .DS_Store
 Thumbs.db
+
+# Build / distribuição
+dist/
+build/
+*.egg-info
+
+# Dados do navegador
+/ms-playwright
+chrome_data/
+browser_use_data/
+
+# Chrome debugging e VNC
+*.pid
+*.sock
+
+# Cache Gradio
+gradio_cached_examples/
