@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && npm install -g npm
 
-# ==== Criação do diretório persistente dos browsers ====
+# ==== Criação do diretório persistente para browsers ====
 RUN mkdir -p /mnt/data/ms-playwright
 
 # ==== noVNC ====
@@ -58,6 +58,8 @@ ENV PYTHONUNBUFFERED=1 \
     PLAYWRIGHT_BROWSERS_PATH=/mnt/data/ms-playwright \
     PORT=10000
 
+# ==== Portas expostas ====
 EXPOSE 10000 7788 6080 5901
 
+# ==== Start ====
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
