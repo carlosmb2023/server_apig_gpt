@@ -49,9 +49,9 @@ services:
       - key: GHCR_TOKEN
         sync: false
 
-      # ✅ Playwright Cache (Render path)
+      # ✅ Playwright (correto agora)
       - key: PLAYWRIGHT_BROWSERS_PATH
-        value: /opt/render/.cache/ms-playwright
+        value: /mnt/data/ms-playwright
 
       # 🧪 Debug, VNC e Navegação
       - key: DISPLAY
@@ -70,3 +70,8 @@ services:
         value: "1920"
       - key: RESOLUTION_HEIGHT
         value: "1080"
+
+    disk:
+      name: dan-storage
+      mountPath: /mnt/data
+      sizeGB: 50
