@@ -191,6 +191,21 @@ def list_azure_builds(organization: str, project: str):
     url = f"{AZURE_API_BASE}/{organization}/{project}/_apis/build/builds?api-version=7.0"
     r = requests.get(url, headers=headers)
     return r.json()
+
+# === BROWSER-USE (NOVO) ===
+@app.post("/automation/browser-use")
+async def browser_use_automation(request: Request):
+    from browser_automation.browser import run_browser_script
+    data = await request.json()
+    url = data.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="Campo 'url' é obrigatório.")
+    try:
+        content = await run_browser_script(url)
+        return {"status": "ok", "html": content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro no browser-use: {str(e)}")
+
 # === PLAYWRIGHT AUTOMATION ===
 @app.post("/automation/playwright")
 async def playwright_automation(request: Request):
@@ -334,6 +349,35 @@ def save_docker_container(data: dict):
         return {"status": "docker container salvo", "path": path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar container: {e}")
+
+# === HUGGINGFACE LLM LOCAL ===
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", "mistralai/Mistral-7B-Instruct-v0.1")
+
+try:
+    tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, use_auth_token=HF_TOKEN)
+    model = AutoModelForCausalLM.from_pretrained(LLM_MODEL_NAME, use_auth_token=HF_TOKEN)
+    model.eval()
+except Exception as e:
+    logging.error(f"Erro ao carregar modelo local: {e}")
+
+@app.post("/llm/generate")
+async def generate_text(request: Request):
+    data = await request.json()
+    prompt = data.get("prompt", "")
+    if not prompt:
+        raise HTTPException(status_code=400, detail="Campo 'prompt' é obrigatório.")
+    try:
+        inputs = tokenizer(prompt, return_tensors="pt")
+        with torch.no_grad():
+            outputs = model.generate(**inputs, max_new_tokens=150)
+        generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return {"response": generated_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar texto: {e}")
 
 # === HEALTH ===
 @app.get("/health")
