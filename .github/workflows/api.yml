@@ -1,32 +1,23 @@
-name: 🔁 API DAN CI
+name: Deploy API GPT
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test-api:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: 📥 Checkout repo
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: 📦 Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        playwright install --with-deps
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
 
-    - name: 🚦 Run smoke tests
-      run: |
-        python -c "import requests; assert requests.get('http://localhost:7000/health').json()['status'] == 'ok'"
-      env:
-        PORT: 7000
+      - name: Run FastAPI (Uvicorn)
+        run: uvicorn main:app --host 0.0.0.0 --port 8000
